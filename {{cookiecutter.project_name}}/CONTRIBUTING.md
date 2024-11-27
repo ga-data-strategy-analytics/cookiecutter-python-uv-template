@@ -62,6 +62,12 @@ git clone git@github.com:YOUR_NAME/{{cookiecutter.project_name}}.git
 cd {{cookiecutter.project_name}}
 ```
 
+If you are using `pyenv`, select a version to use locally. (See installed versions with `pyenv versions`)
+
+```bash
+pyenv local <x.y.z>
+```
+
 Then, install and activate the environment with:
 
 ```bash

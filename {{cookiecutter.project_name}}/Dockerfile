@@ -1,21 +1,40 @@
-# Install uv
-FROM python:3.12-slim
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+########## BUILDER STAGE ##########
+FROM python:{{cookiecutter.target_python_version}}-slim-bookworm as builder
 
-# Change the working directory to the `app` directory
-WORKDIR /app
+USER root
 
-# Copy the lockfile and `pyproject.toml` into the image
-ADD uv.lock /app/uv.lock
-ADD pyproject.toml /app/pyproject.toml
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    UV_VERSION={{cookiecutter.uv_version}} \
+    PYTHONUNBUFFERED=1
 
-# Install dependencies
-RUN uv sync --frozen --no-install-project
+WORKDIR /home/app
 
-# Copy the project into the image
-ADD . /app
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Sync the project
-RUN uv sync --frozen
+# Copy only necessary files
+COPY pyproject.toml ./
+COPY {{cookiecutter.project_slug}} ./{{cookiecutter.project_slug}}
 
-CMD [ "python", "{{cookiecutter.project_slug}}/foo.py"]
+# Install Python dependencies
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    pip install "uv==$UV_VERSION" && \
+    uv sync --frozen --no-group dev && \
+    cd {{cookiecutter.project_slug}}
+
+########## FINAL STAGE ##########
+FROM python:{{cookiecutter.target_python_version}}-slim-bookworm
+
+WORKDIR /home/app/{{cookiecutter.project_slug}}
+
+ENV PATH="/home/app/.venv/bin:$PATH"
+
+# Copy only necessary files from the builder stage
+COPY --from=builder /home/app/.venv /home/app/.venv
+COPY --from=builder /home/app/{{cookiecutter.project_slug}} /home/app/{{cookiecutter.project_slug}}
+
+ENTRYPOINT ["/bin/sh", "-c"]

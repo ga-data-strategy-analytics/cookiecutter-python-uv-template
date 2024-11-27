@@ -6,36 +6,13 @@ authors = [{ name = "{{cookiecutter.author}}", email = "{{cookiecutter.email}}" 
 readme = "README.md"
 keywords = ['python']
 requires-python = ">=3.9,<4.0"
-classifiers = [
-    "Intended Audience :: Developers",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-]
+dependencies = []
 
 [project.urls]
-Homepage = "https://{{cookiecutter.author_github_handle}}.github.io/{{cookiecutter.project_name}}/"
 Repository = "https://github.com/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}"
+{% if cookiecutter.mkdocs == 'y' -%}
 Documentation = "https://{{cookiecutter.author_github_handle}}.github.io/{{cookiecutter.project_name}}/"
-
-[tool.uv]
-dev-dependencies = [
-    "pytest>=7.2.0",
-    "pre-commit>=2.20.0",
-    "tox-uv>=1.11.3",
-    {% if cookiecutter.deptry == 'y' %}"deptry>=0.20.0",{% endif %}
-    "mypy>=0.991",
-    {% if cookiecutter.codecov == 'y' %}"pytest-cov>=4.0.0",{% endif %}
-    "ruff>=0.6.9",
-    {% if cookiecutter.mkdocs == 'y' %}"mkdocs>=1.4.2",
-    "mkdocs-material>=8.5.10",
-    "mkdocstrings[python]>=0.26.1",{% endif %}
-]
+{% endif -%}
 
 [build-system]
 requires = ["setuptools >= 61.0"]
@@ -43,6 +20,51 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 py-modules = ["{{cookiecutter.project_slug}}"]
+
+[tool.uv]
+python-preference = "system"
+package = true
+default-groups = ["dev"]
+
+[dependency-groups]
+dev = [
+    "pytest~=8.3.3",
+    "pytest_mock~=3.14.0",
+    {% if cookiecutter.codecov == 'y' -%}
+    "pytest-cov~=6.0.0",
+    {% endif -%}
+    {% if cookiecutter.tox == 'y' -%}
+    "tox-uv~=1.16.0",
+    {% endif -%}
+    "mypy~=1.13.0",
+    "pre-commit~=4.0.0",
+    "ruff~=0.8.0",
+    "black~=24.10.0"
+]
+{% if cookiecutter.mkdocs == 'y' -%}
+docs = [
+    "mkdocs~=1.6.0",
+    "mkdocs-material~=9.5.0",
+    "mkdocstrings[python]~=1.12.0",
+    "mkdocs-gen-files~=0.5.0",
+    "mkdocs-literate-nav~=0.6.1",
+    "mkdocs-section-index~=0.3.8",
+    "docformatter~=1.7.5"
+]
+{%- endif %}
+
+
+{% if cookiecutter.mkdocs == 'y' -%}
+[tool.docformatter]
+recursive = true
+wrap-summaries = 88
+wrap-descriptions = 88
+black = true
+newlinestyle = "google"
+make-summary-multi-line = true
+pre-summary-newline = true
+force-wrap = false
+{%- endif %}
 
 [tool.mypy]
 files = ["{{cookiecutter.project_slug}}"]
@@ -56,10 +78,11 @@ show_error_codes = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.ruff]
-target-version = "py39"
-line-length = 120
+target-version = "py{{ cookiecutter.target_python_version.replace('.', '') }}"
+line-length = 88
 fix = true
 
 [tool.ruff.lint]
@@ -100,13 +123,20 @@ ignore = [
     "E501",
     # DoNotAssignLambda
     "E731",
+    # Unspecified Import Names
+    "F403",
+    # long messages
+    "TRY003",
+    # Possible SQL injection vector through string-based query construction
+    "S608",
+    # Zip without explicit strict
+    "B905"
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
-
-[tool.ruff.format]
-preview = true
+"tests/**/*.py" = [
+    "S101", # asserts allowed in tests...
+]
 
 {% if cookiecutter.codecov == "y"-%}
 [tool.coverage.report]
@@ -115,4 +145,9 @@ skip_empty = true
 [tool.coverage.run]
 branch = true
 source = ["{{cookiecutter.project_slug}}"]
-{% endif %}
+{%- endif%}
+
+[tool.black]
+line-length = 88
+target-version = ['py{{ cookiecutter.target_python_version.replace('.', '') }}']
+preview = true
