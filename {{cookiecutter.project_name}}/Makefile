@@ -12,7 +12,7 @@ install-only: ## Only install the uv environment
 .PHONY: sync
 sync: ## Resolve all dependencies of the project and write the exact versions into uv.lock
 	@echo "🚀 Updating virtual environment and uv.lock based on pyproject.toml"
-	@uv sync
+	@uv sync --frozen
 
 .PHONY: check
 check: ## Run code quality tools.
@@ -22,7 +22,7 @@ check: ## Run code quality tools.
 	@uv run mypy --install-types --non-interactive
 
 .PHONY: lock
-uv-lock: ## Generate new uv.lock file
+lock: ## Generate new uv.lock file
 	@echo "🚀 Generating new uv lock file consistent with 'pyproject.toml'"
 	@uv lock
 
