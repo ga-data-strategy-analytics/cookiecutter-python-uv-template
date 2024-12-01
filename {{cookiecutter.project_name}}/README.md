@@ -1,77 +1,80 @@
 # {{cookiecutter.project_name}}
 
-[![Release](https://img.shields.io/github/v/release/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}})](https://img.shields.io/github/v/release/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}})
-[![Build status](https://img.shields.io/github/actions/workflow/status/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}/main.yml?branch=main)](https://github.com/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}/actions/workflows/main.yml?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}/branch/main/graph/badge.svg)](https://codecov.io/gh/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}})
-[![Commit activity](https://img.shields.io/github/commit-activity/m/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}})](https://img.shields.io/github/commit-activity/m/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}})
-[![License](https://img.shields.io/github/license/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}})](https://img.shields.io/github/license/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}})
-
 {{cookiecutter.project_description}}
 
-- **Github repository**: <https://github.com/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}/>
-- **Documentation** <https://{{cookiecutter.author_github_handle}}.github.io/{{cookiecutter.project_name}}/>
+## 1. Getting Started
 
-## Getting started with your project
+1. Clone the repository to your desired directory:
 
-### 1. Create a New Repository
+    ```bash
+    cd <directory_in_which_repo_should_be_created>
+    git clone https://github.com/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}.git
+    cd {{cookiecutter.project_name}}
+    ```
 
-First, create a repository on GitHub with the same name as this project, and then run the following commands:
+2. Activate your Python environment (Python {{cookiecutter.target_python_version}} version is recommended).
 
-```bash
-git init -b main
-git add .
-git commit -m "init commit"
-git remote add origin git@github.com:{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}.git
-git push -u origin main
-```
+3. Install uv for dependency management:
 
-### 2. Set Up Your Development Environment
+    ```bash
+    python -m pip install --upgrade pip
+    pip install uv=={{cookiecutter.poetry_version}}
+    ```
 
-Then, install the environment and the pre-commit hooks with
+4. Install the project dependencies and set up pre-commit hooks:
 
-```bash
-make install
-```
+    ```bash
+    make install
+    ```
 
-This will also generate your `uv.lock` file
+Now, you are prepared to embark on the development of new features for the project.
 
-### 3. Run the pre-commit hooks
 
-Initially, the CI/CD pipeline might be failing due to formatting issues. To resolve those run:
 
-```bash
-uv run pre-commit run -a
-```
+## 2. Contributiong
 
-### 4. Commit the changes
+1. **Branch Creation:**
+    Start by creating a new branch from the `/main` branch using the following format:
+    ```
+    {% raw %}git checkout -b feature/DP-{{JiraTaskID}}-{{JiraTaskName}}{% endraw %}
+    ```
+    Proceed with the implementation of the new feature within this branch.
 
-Lastly, commit the changes made by the two steps above to your repository.
+2. **Run Pre-commit Hooks:**
+    Ensure adherence to coding best practices by running pre-commit hooks, which utilize `black` as a code formatter and `ruff` as a linter.
+    To evaluate the code quality before committing your changes, execute the following command to trigger pre-commit hooks and perform static code analysis using `mypy`:
 
-```bash
-git add .
-git commit -m 'Fix formatting issues'
-git push origin main
-```
+    ```bash
+    make check
+    ```
 
-You are now ready to start development on your project!
-The CI/CD pipeline will be triggered when you open a pull request, merge to main, or when you create a new release.
+3. **Run Unit Tests:**
+    Validate that your changes have not adversely affected existing code by running unit tests with `pytest`:
 
-To finalize the set-up for publishing to PyPI, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/publishing/#set-up-for-pypi).
-For activating the automatic documentation with MkDocs, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/mkdocs/#enabling-the-documentation-on-github).
-To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/codecov/).
+    ```bash
+    make test
+    ```
 
-## Releasing a new version
+    Alternatively, execute a comprehensive test matrix with different Python versions using `tox`:
 
-{% if cookiecutter.publish_to_pypi == "y" -%}
+    ```bash
+    tox
+    ```
 
-- Create an API Token on [PyPI](https://pypi.org/).
-- Add the API Token to your projects secrets with the name `PYPI_TOKEN` by visiting [this page](https://github.com/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}/settings/secrets/actions/new).
-- Create a [new release](https://github.com/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}/releases/new) on Github.
-- Create a new tag in the form `*.*.*`.
+Once these steps are completed successfully, proceed to commit and push your changes. The CI/CD pipeline will automatically trigger upon the creation of a pull request, merging to the main branch, or the creation of a new release.
 
-For more details, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/cicd/#how-to-trigger-a-release).
+{% if cookiecutter.dockerfile == "y" -%}
+## 3. CI/CD
+
+In this project, Docker is employed to containerize the application and enhance deployment efficiency.
+The CI/CD pipeline is responsible for automatically building the Docker image and pushing it to the Amazon Elastic Container Registry (ECR) with a given tag, based of the [development cycle](https://giorgioarmani.atlassian.net/wiki/spaces/DP/pages/2083717150/Development+Process#Development-cycle) described on Confluence.
+
+For testing purposes, a docker image can be builted from any branch with a custom tag triggering the workflow declared by [Deploy dev - Workflow](https://github.com/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}/actions/workflows/deploy_dev.yml).
+
+There is also a possibility to build a docker image in prod enviroment (only starting form a release branch) using the workflow declared by [Deploy prod - Workflow](https://github.com/{{cookiecutter.author_github_handle}}/{{cookiecutter.project_name}}/actions/workflows/deploy_prod.yml).
 {%- endif %}
 
----
 
-Repository initiated with [fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv).
+---
+### Credits
+Repository initiated with [ga-data-strategy-analytics/cookiecutter-python-uv-template](https://github.com/ga-data-strategy-analytics/cookiecutter-python-uv-template).
