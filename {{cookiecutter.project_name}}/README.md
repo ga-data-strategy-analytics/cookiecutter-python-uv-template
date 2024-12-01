@@ -18,7 +18,7 @@
 
     ```bash
     python -m pip install --upgrade pip
-    pip install uv=={{cookiecutter.poetry_version}}
+    pip install uv=={{cookiecutter.uv_version}}
     ```
 
 4. Install the project dependencies and set up pre-commit hooks:
